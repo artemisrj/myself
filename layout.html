@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+   
     <title>Force-Directed Layout (Dynamic)</title>
     <script type="text/javascript" src="d3.v2.min.js"></script>
    <!-- <script type="text/javascript" src="d3.geom.min.js"></script>-->
@@ -15,17 +16,25 @@ html, body {
 }
 
 rect {
-  fill: #fff;
+	fill: #fff;
+	position: absolute;
+	z-index: auto;
+	top: 0px;
+	right: 0px;
 }
 
 .node {
   fill: #09C;
 }
 
-.form {
-	color:#0C9;
+#front{
+	
 	display:none;
 
+}
+.form {
+	color:#0C9;
+	
 }
 .cursor {
   fill: none;
@@ -197,9 +206,11 @@ vis.on("click", function(){
 vis.on("mousedown", function() {
 	//alert("down");
 	//alert("ssss");
- // form.attr("display","block");
- var form=d3.select("form").classed("display","block");
+  //  form.attr("display","block");
+    // var form=d3.select("form").classed("display","block");
+ //var form=d3.select("").attr("display","block");
  
+var  form= document.getElementById("front").style.display="block";
  
    point = d3.svg.mouse(this); //获取鼠标的属性而且是数组啊，，
    var   node = {x: point[0], y: point[1]}; //赋值，按照格式
@@ -267,7 +278,7 @@ function restart() {
 
     </script>
  <div id="front"  >
- <form class="from"  onsubmit="return Change();">
+ <form class="form"  onsubmit="return Change();">
 <label > 输入事件项：</label>
 <input id="input" required  />  
 <input type="submit" value="submit"   />
