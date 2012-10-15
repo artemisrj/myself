@@ -19,18 +19,23 @@ rect {
 	fill: #fff;
 	position: absolute;
 	z-index: auto;
-	top: 0px;
+	top: -200px;
 	right: 0px;
 }
 
 .node {
   fill: #09C;
 }
+.behind{
+		
+}
 
 #front{
-	
-	display:none;
-
+	display: none;
+	overflow: visible;
+	position: relative;
+	top: -250px;
+	right: -300px;
 }
 .form {
 	color:#0C9;
@@ -77,9 +82,11 @@ var leftR=60;
 var t = JSON.parse(jsonn);
 //alert(t.people.name);
 
-var vis = d3.select("body").append("svg:svg")
-    .attr("width", w)
-    .attr("height", h); //这里应该是产生节点 svg
+var vis = d3.select("body");
+    vis=vis.append("div").attr("class","behind");
+    vis=vis.append("svg:svg");
+    vis.attr("width", w)
+    .attr("height", h); //这里应该是产生节点 svg  而且返回svg
 
 vis.append("svg:rect")
     .attr("width", w)
@@ -277,6 +284,8 @@ function restart() {
 }
 
     </script>
+
+
  <div id="front"  >
  <form class="form"  onsubmit="return Change();">
 <label > 输入事件项：</label>
