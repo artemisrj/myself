@@ -66,7 +66,7 @@ var leftR=60;
           ' {"people" :[{"name":123} ]}';
  
 var t = JSON.parse(jsonn);
-alert(t.people.name);
+//alert(t.people.name);
 
 var vis = d3.select("body").append("svg:svg")
     .attr("width", w)
@@ -117,7 +117,7 @@ force.on("tick", function() {
 			   // alert(links);
 			 }
 		}
- // 一旦上了三个就出问题
+
 	 for(var mm=0;mm<nodes.length;mm++){
 		var x=nodes[mm].x;
 		var y=nodes[mm].y;
@@ -266,10 +266,12 @@ function restart() {
 }
 
     </script>
- <form id="form"  onsubmit="return Change();">
+ <div id="front"  >
+ <form class="from"  onsubmit="return Change();">
 <label > 输入事件项：</label>
 <input id="input" required  />  
 <input type="submit" value="submit"   />
 </form>
+</div>
   </body>
 </html>
