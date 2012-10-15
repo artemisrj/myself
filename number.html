@@ -1,0 +1,397 @@
+<svg  xmlns="http://www.w3.org/2000/svg" onload="initialize(evt)" > 
+<title>SUDOKU</title>
+<desc>
+      A little sudoku game. Demonstrate SVG including event process (mouse and keyboard),
+      dynamic SVG element create and change by JavaScript.
+</desc>
+
+<script type="text/javascript">
+//<![CDATA[
+    var svgns = "http://www.w3.org/2000/svg";
+    var selectedRect = null; //Current selected rect
+        
+    var DIMENSION = 9;
+    var RECT_H = 46;
+    var RECT_W = 46;
+    var RECT_INTERVAL = 50;
+    
+    var INTERVAL_LINE_OFFSET = 2;
+    var INTERVAL_LINE_STROKE_WIDTH = 3;
+    
+    var ORIGINAL_X = 50;
+    var ORIGINAL_Y = 50;
+    
+    var RECT_NAME = "R";
+    var TEXT_NAME = "T";
+    
+    var UNFINISHED = -1;
+    var FAIL = 0;
+    var SUCCESS = 1;
+    
+    var RECT_ORG_COLOR = "moccasin";
+    var RECT_MOUSE_OVER_COLOR = "sandybrown";
+    var RECT_SELECTED_COLOR = "green";
+    
+    var TEXT_FIXED_COLOR = "saddlebrown";
+    var TEXT_ORG_COLOR = "saddlebrown";
+    var TEXT_SELECTED_COLOR = "red";
+    
+    var a = new Array();
+    
+    /*
+    //A little difficult one
+    a[0] = [0,6,0,3,0,4,7,0,0];
+    a[1] = [0,0,5,0,0,6,4,1,0];
+    a[2] = [9,0,0,0,5,0,0,0,3];
+    a[3] = [0,0,0,0,0,0,9,3,0];
+    a[4] = [1,0,0,0,3,0,8,0,0];
+    a[5] = [0,7,2,6,0,0,0,0,0];
+    a[6] = [0,0,0,4,0,7,0,0,0];
+    a[7] = [4,0,0,0,0,3,0,0,1];
+    a[8] = [0,2,3,0,0,0,0,8,0];
+    
+    //answer    
+    a[0] = [5,4,9, 1,7,3, 8,6,2];
+    a[1] = [3,6,7, 2,5,8, 1,9,4];
+    a[2] = [2,8,1, 9,4,6, 7,5,3];
+    
+    a[3] = [4,2,8, 3,9,7, 6,1,5];
+    a[4] = [9,1,6, 4,2,5, 3,7,8];
+    a[5] = [7,5,3, 6,8,1, 2,4,9];
+    
+    a[6] = [1,3,4, 8,6,9, 5,2,7];
+    a[7] = [8,9,5, 7,1,2, 4,3,6];
+    a[8] = [6,7,2, 5,3,4, 9,8,1];
+    
+    */
+        a[0] = [5,0,0,0,0,0,8,0,2];
+    a[1] = [0,0,7,0,5,8,0,0,4];
+    a[2] = [2,0,1,0,0,0,7,5,3];
+    a[3] = [0,0,0,3,9,0,0,0,0];
+    a[4] = [9,1,6,4,0,5,3,7,8];
+    a[5] = [0,0,0,0,8,1,0,0,0];
+    a[6] = [1,3,4,0,0,0,5,0,7];
+    a[7] = [8,0,0,7,1,0,4,0,0];
+    a[8] = [6,0,2,0,0,0,0,0,1];
+                
+    //Document and root
+    var svgDocument = null;
+        var svgRoot = null;
+
+    //Initialize canvas
+    function initialize(evt) 
+    {
+        svgDocument = evt.target.ownerDocument;
+             svgRoot = svgDocument.documentElement;
+             
+        var mainElem = svgDocument.getElementById("main");
+        svgRoot.addEventListener("keypress", tape, false); //We must add keypress here to support FF1.5 
+
+        //Show date time
+        yy_datetime();
+        
+        //Create rects and text
+        for (var row = 0; row<DIMENSION; row++)
+        {
+            for (var col = 0; col<DIMENSION; col++)
+            {
+                //Create rect dynamically
+                var rect = svgDocument.createElementNS(svgns, "rect");
+                
+                rect.setAttributeNS(null, "id", RECT_NAME + row + col);
+                rect.setAttributeNS(null, "x", ORIGINAL_X + col*RECT_INTERVAL);
+                rect.setAttributeNS(null, "y", ORIGINAL_Y + row*RECT_INTERVAL);
+                rect.setAttributeNS(null, "width", RECT_W);
+                rect.setAttributeNS(null, "height", RECT_H);
+                rect.setAttributeNS(null, "fill", RECT_ORG_COLOR);
+                
+                if( a[row][col] == 0) //Accept user input
+                {
+                    //Add event
+                    rect.addEventListener("click", clickRect, false);
+                    rect.addEventListener("mouseover", changeColor, false);
+                    rect.addEventListener("mouseout", changeColor, false);
+                }
+                
+                //Add to doc
+                mainElem.appendChild(rect);
+                
+                //Create text dynamically, get value from array       
+                var text = svgDocument.createElementNS(svgns, "text");
+                                
+                text.setAttributeNS(null, "id", TEXT_NAME + row + col);
+                text.setAttributeNS(null, "x", ORIGINAL_X + col*RECT_INTERVAL + 20);
+                text.setAttributeNS(null, "y", ORIGINAL_Y + row*RECT_INTERVAL + 30);
+                
+                var myData;
+                
+                if( a[row][col] > 0) //Fixed
+                {
+                    text.setAttributeNS(null, "font-size", "22pt");
+                    text.setAttributeNS(null, "stroke", TEXT_FIXED_COLOR);
+                    
+                    myData = svgDocument.createTextNode( a[row][col] );
+                }
+                else //Accept user change
+                {
+                    text.setAttributeNS(null, "font-size", "20pt");
+                    text.setAttributeNS(null, "stroke", TEXT_ORG_COLOR);
+                    text.setAttributeNS(null, "point-events", "none");
+                    
+                    myData = svgDocument.createTextNode("");
+                }
+                
+                //Add text node
+                text.appendChild(myData);
+                
+                //Add to doc                
+                mainElem.appendChild(text);
+            }
+        }
+        
+        //Add horizontal seperate line
+        for(var k = 3; k < 9; k = k + 3)
+        {
+            var line = svgDocument.createElementNS(svgns, "line");
+                
+            line.setAttributeNS(null, "x1", ORIGINAL_X);
+            line.setAttributeNS(null, "y1", ORIGINAL_Y + k*RECT_INTERVAL - INTERVAL_LINE_OFFSET );
+            line.setAttributeNS(null, "x2", ORIGINAL_X + DIMENSION * RECT_INTERVAL - INTERVAL_LINE_OFFSET );
+            line.setAttributeNS(null, "y2", ORIGINAL_Y + k*RECT_INTERVAL - INTERVAL_LINE_OFFSET );
+            line.setAttributeNS(null, "stroke", "brown");
+            line.setAttributeNS(null, "stroke-width", INTERVAL_LINE_STROKE_WIDTH);
+            
+            //Add to doc
+            svgDocument.documentElement.appendChild(line);
+        }
+        
+        //Add vertical seperate line
+        for(var k = 3; k < 9; k = k + 3)
+        {
+            var line = svgDocument.createElementNS(svgns, "line");
+                
+            line.setAttributeNS(null, "x1", ORIGINAL_X + k*RECT_INTERVAL - INTERVAL_LINE_OFFSET );
+            line.setAttributeNS(null, "y1", ORIGINAL_Y );
+            line.setAttributeNS(null, "x2", ORIGINAL_X + k*RECT_INTERVAL - INTERVAL_LINE_OFFSET );
+            line.setAttributeNS(null, "y2", ORIGINAL_Y + DIMENSION*RECT_INTERVAL - INTERVAL_LINE_OFFSET );
+            line.setAttributeNS(null, "stroke", "brown");
+            line.setAttributeNS(null, "stroke-width", INTERVAL_LINE_STROKE_WIDTH);
+            
+            //Add to doc
+            svgDocument.documentElement.appendChild(line);
+        }
+    }
+
+function changeColor(evt)
+{
+    var overRect = evt.target;
+    var type = evt.type;
+    
+    if(type == "mouseover")
+        overRect.setAttributeNS(null, "fill", RECT_MOUSE_OVER_COLOR);
+    else if(type == "mouseout")
+        overRect.setAttributeNS(null, "fill", RECT_ORG_COLOR);
+}
+
+function commit(evt)
+{    
+    setColorBack();
+    
+    var ret = isTarget();
+    
+    if( ret == UNFINISHED )
+    {
+        alert("unfinished");
+    }
+    else if( ret == FAIL )
+    {
+        alert("error");
+    }
+    else
+        alert("success");
+}
+    
+function isTarget()
+{
+    //Check whether player finished
+    for (var i = 0; i < DIMENSION; i++)
+    {
+        for (var j = 0; j < DIMENSION; j++)
+        {
+            if(a [i][j] == 0)
+                return UNFINISHED; //continue;
+        }
+    }
+    
+    //Check row
+    for (var i = 0; i < DIMENSION; i++)
+    {
+        var temp = [0,0,0,0,0,0,0,0,0];
+        for (var j = 0; j < DIMENSION; j++)
+        {
+            temp[ a[i][j]-1 ] = 1;
+        }
+        
+        for(var k = 0; k < DIMENSION; k++)
+        {
+            if(temp[k] != 1)
+                return FAIL;
+        }
+    }
+    
+    //Check col
+    for (var i = 0; i < DIMENSION; i++)
+    {
+        var temp = [0,0,0,0,0,0,0,0,0];
+        for (var j = 0; j < DIMENSION; j++)
+        {
+            temp[ a[j][i]-1 ] = 1;
+        }
+        
+        for(var k = 0; k < DIMENSION; k++)
+        {
+            if(temp[k] != 1)
+                return FAIL;
+        }
+    }
+    
+    //Check block
+    for(var bx = 0; bx < 3; bx++)
+    {
+        for(var by = 0; by < 3; by++)
+        {
+            var temp = [0,0,0,0,0,0,0,0,0];
+            for(var i = bx * 3; i < bx * 3 + 3; i++)
+            {
+                for(var j = by * 3; j < by * 3 + 3; j++)
+                {
+                    //alert(bx + "," + by + "," + i + "," + j + "," + a[i][j]);
+                    temp[ a[i][j]-1 ] = 1;
+                }
+            }
+            
+            for(var k = 0; k < DIMENSION; k++)
+            {
+                if(temp[k] != 1)
+                    return FAIL;
+            }
+        }
+    }
+    
+    return SUCCESS; //Success
+}
+
+function tape(evt)
+{    
+    if(selectedRect == null)
+        return;
+        
+    key = evt.charCode;
+    //alert(key);
+    
+    //Get corresponding text object by ID
+    var id = selectedRect.getAttributeNS(null,"id").substr(1,2);
+    var row = parseInt( id.substr(0,1) );
+    var col = parseInt( id.substr(1,1) );
+    
+    var selectedText = svgDocument.getElementById(TEXT_NAME + id);
+    
+    if ( key == 32 ) //"SPACE" key to delete
+    {
+        selectedText.firstChild.data = "";
+        a[row][col] = 0;
+    }
+    else if( key > 48 && key <=57 )
+    {
+        var char = String.fromCharCode(key);
+        selectedText.firstChild.data = char;
+        
+        a[row][col] = parseInt(char);
+    }
+}
+
+function setColorBack()
+{
+    if(selectedRect != null)
+    {
+        selectedRect.setAttributeNS(null, "stroke", "none");
+        var id = selectedRect.getAttributeNS(null,"id").substr(1,2);
+                
+        //Get corresponding text object by ID
+        var selectedText = svgDocument.getElementById(TEXT_NAME + id);
+        
+        //Change color to indicate user
+        if(selectedText != null)
+        {
+            selectedText.setAttributeNS(null, "stroke", TEXT_ORG_COLOR);
+        
+        }
+        
+        selectedRect = null;
+    }
+}
+        
+function clickRect(evt) 
+{
+    setColorBack();
+        
+    //Get new target and target id
+    selectedRect = evt.target;
+    var id = selectedRect.getAttributeNS(null,"id").substr(1,2);
+        
+    //Get corresponding text object by ID
+    var selectedText = svgDocument.getElementById(TEXT_NAME + id);
+    
+    //Change color to indicate user
+    if(selectedText != null)
+    {
+        selectedText.setAttributeNS(null, "stroke", TEXT_SELECTED_COLOR);
+    
+    }
+
+    selectedRect.setAttributeNS(null, "stroke", RECT_SELECTED_COLOR);
+}
+
+function yy_datetime()
+{
+    var text;
+    text = svgDocument.getElementById("updateTime");
+        
+    var datetime,temp,date,time;
+    datetime = new Date().toLocaleString();
+    
+    temp = datetime.lastIndexOf(" ");
+    date = datetime.substring(0,temp);
+    time = datetime.substring(temp+1,datetime.length);
+    
+    text.firstChild.data = "Update time: " + date + " " + time;
+    
+    setTimeout("yy_datetime()",1000);
+}    
+
+// ]]>
+</script>
+
+<filter id="dropShadow" filterUnits="userSpaceOnUse" x="0" y="0" width="400" height="200">
+    <feOffset in="SourceAlpha" dx="5" dy="5" result="offset"/>
+    <feGaussianBlur in="offset" stdDeviation="5" result="blur"/>
+    <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+    </feMerge> 
+</filter>
+
+<text filter="url(#dropShadow)" x="200" y="30" 
+        font-size="30" font-family="Monotype Corsiva" fill="yellow" stroke="red" >
+        SUDOKU
+</text>
+
+<rect  x="0" y="0" width="600" height="550" fill="none" stroke="black" stroke-width="5" />
+<g id="main"></g>
+
+<ellipse onclick="commit(evt)" cx="558" cy="505" rx="40" ry="20" fill="thistle" stroke="black" stroke-width="3"/>
+<text onmouseout="changeColor(evt)" onmouseover="changeColor(evt)" onclick="commit(evt)" x="533" y="510" style="font-size:20" fill="peru" >commit</text>
+
+<text id="updateTime" x="200" y="520" style="font-size:10" fill="peru" > </text>
+
+</svg>

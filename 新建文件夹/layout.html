@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Force-Directed Layout (Dynamic)</title>
+    <script type="text/javascript" src="d3.v2.min.js"></script>
+   <!-- <script type="text/javascript" src="d3.geom.min.js"></script>-->
+  <!--  <script type="text/javascript" src="d3.layout.min.js"></script>-->
+    <style type="text/css">
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+rect {
+  fill: #fff;
+}
+
+.node {
+  fill: #09C;
+}
+
+.form {
+	color:#0C9;
+	display:none;
+
+}
+.cursor {
+  fill: none;
+  stroke: brown;
+  pointer-events: none;
+}
+
+.left{
+	
+	fill:none;
+	stroke: brown;
+}
+
+.link {
+  stroke: #999;
+}
+
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript">
+	
+//var form=document.getElementById("form");
+//.style.display("block");
+
+var w = 960,
+    h = 500,
+    fill = d3.scale.category20(),  //种类20
+	test=[];
+    nodes = [],
+    links = [],
+	circler=10;
+	var point;
+	//links[1]=30;
+var leftR=60;
+
+
+var vis = d3.select("body").append("svg:svg")
+    .attr("width", w)
+    .attr("height", h); //这里应该是产生节点 svg
+
+vis.append("svg:rect")
+    .attr("width", w)
+    .attr("height", h);  //这里产生正方形 rect 而且在svg里面 默认是黑色的靠CSS改变颜色
+	
+vis.append("svg:circle")
+	.attr("cx","0")
+	.attr("cy","0")
+	.attr("r",leftR)
+	.attr("class","left");
+
+var force = d3.layout.force()
+    .nodes(nodes)
+    .links(links)
+    .size([w, h])
+	.linkDistance(80).gravity(0.5)
+	.charge(-500);
+	//初始化 force 而且是在layout里面 赋予初始的数据结构，，links 和nodes
+var alink;
+	
+var cursor = vis.append("svg:circle")
+    .attr("r", 50)
+    .attr("transform", "translate(-100,-100)")
+    .attr("class", "cursor")
+	;
+	//光标的初始化   translate是用来坐标变换的
+/*var svg=d3.select("svg");
+	svg.selectAll("circle")
+    .data([32, 57, 112, 293])
+  .enter().append("circle")
+    .attr("cy", 90)
+    .attr("cx", String)
+    .attr("r", function(d){return d/10;});
+*/
+force.on("tick", function() {
+	for(var i=0;i<links.length;i++){
+		var  x=links[i].target.x-links[i].source.x;
+		var  y=links[i].target.y-links[i].source.y;
+	 	if(x>200||y>200){
+			 var distance=x*x+y*y;
+			 if(distance>50000){
+				 // alert(links);
+				 links.splice(i,1);
+			   // alert(links);
+			 }
+		}
+ // 一旦上了三个就出问题
+	 for(var mm=0;mm<nodes.length;mm++){
+		var x=nodes[mm].x;
+		var y=nodes[mm].y;
+		if(x<(leftR-10)&&y<(leftR-10)){
+			if((x*x+y*y)<(leftR*leftR)){
+				
+				//alert(mm);
+			   nodes.splice(mm,1);
+			}
+		}
+	 }
+	 
+	 		  
+  vis.selectAll("circle.node")
+   .data(nodes)
+   .exit().remove();
+   
+ vis.selectAll("g")
+		.data(nodes)
+		.exit().remove();
+		  
+  vis.selectAll("line.link")
+   .data(links)
+   .exit().remove();
+   
+/*     vis.selectALl("circle.node")
+  .data(nodes)
+  .exit().remove();*/
+	}
+	 
+
+
+
+  vis.selectAll("line.link")  //这个是直线的设置
+      .attr("x1", function(d) { return d.source.x; })
+      .attr("y1", function(d) { return d.source.y; })
+      .attr("x2", function(d) { return d.target.x; })
+      .attr("y2", function(d) { return d.target.y; });
+//selectAll是javascript的函数吧
+
+
+
+  vis.selectAll("circle.node") //这个是圆的设置
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; });
+	  //.call(force.drag);
+	  
+	   vis.selectAll("g")
+	  .attr("transform",function(d) { return  "translate("+d.x+","+(d.y+circler+3)+")"; } )
+});
+	
+//应该是点击的反应吧。  d是圆本身带的数据啊啊
+
+vis.on("mousemove", function() {
+	//alert("move");
+  cursor.attr("transform", "translate(" + d3.svg.mouse(this) + ")");
+  
+  
+  
+ 
+});    //on应该是事件响应 鼠标移动的时候光标也移动
+
+//alink=d3.selectAll("line.link")
+vis.on("mouseover", function() {
+	//这个可以显示备注
+});
+
+
+vis.on("mousedrag", function() {
+	//这个可以显示备注
+	//alert("drag");
+});
+vis.on("click", function(){
+	//alert("onclidk");
+});
+
+vis.on("mousedown", function() {
+	//alert("down");
+	//alert("ssss");
+ // form.attr("display","block");
+ var form=d3.select("form").classed("display","block");
+ 
+ 
+   point = d3.svg.mouse(this); //获取鼠标的属性而且是数组啊，，
+   var   node = {x: point[0], y: point[1]}; //赋值，按照格式
+      //c产生一个新的节点
+    	var  n = nodes.push(node); 
+	 nodes.forEach(function(target) {  //forEach应该是数组遍历的函数 产生链接的条件，，，target应该是鼠标所在的位置么
+	 
+    var x = target.x - node.x,
+        y = target.y - node.y;
+    if (Math.sqrt(x * x + y * y) < 100) {
+      links.push({source: node, target: target});
+    }
+  } );
+	
+  // add links to any nearby nodes
+/* */
+
+  restart();
+});
+
+restart();
+
+function Change(){
+
+}
+
+
+function restart() {
+//这边把links的内容赋值给了 line
+
+	vis.selectAll("g")
+		.data(nodes)
+		.enter().insert("svg:g")
+		.attr("transform",function(d) { return  "translate("+d.x+","+d.y+")"; } )
+		.append("text")
+      .attr("text-anchor", "middle")       
+	  .attr("dy", ".3em")
+       .text(function(d,i){ return  " "+i ; });
+	   //.attr("contentEditable","true";
+
+
+
+  vis.selectAll("line.link")
+      .data(links)   //enter()指的是多余的数据
+    .enter().insert("svg:line", "circle.node")
+      .attr("class", "link")
+      .attr("x1", function(d) { return d.source.x; })
+      .attr("y1", function(d) { return d.source.y; })
+      .attr("x2", function(d) { return d.target.x; })
+      .attr("y2", function(d) { return d.target.y; });
+	  
+
+
+  vis.selectAll("circle.node")
+      .data(nodes)
+    .enter().insert("svg:circle", "circle.cursor")
+      .attr("class", "node")
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; })
+      .attr("r", 10)
+      .call(force.drag);
+//这里才是开始绘图啊啊啊啊啊
+  force.start();
+}
+
+    </script>
+ <form id="form"  onsubmit="return Change();">
+<label > 输入事件项：</label>
+<input id="input" required  />  
+<input type="submit" value="submit"   />
+</form>
+  </body>
+</html>

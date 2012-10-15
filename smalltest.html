@@ -1,0 +1,37 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+   <script type="text/javascript" src="d3.v2.min.js"></script>
+  
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>无标题文档</title>
+</head>
+
+<body>
+  <script type="text/javascript">
+  var w = 960,
+    h = 500;
+	var vis = d3.select("body").append("svg:svg")
+    .attr("width", w)
+    .attr("height", h);
+	//冒号前面是命名空间
+ 
+	
+var node=vis.append("svg:g")
+ .attr("class", "node")
+ .attr( "transform", "translate(234,46)");
+
+ node.append("circle")
+       .attr("r", 20);
+	
+ node.append("text")
+      .attr("text-anchor", "middle")       
+	  .attr("dy", ".3em")
+       .text("我是子熬煮");
+	   
+	   vis.on("mousemove", function() {
+		   node.attr("transform","translate("+d3.svg.mouse(this) + ")");
+		   })
+	</script>
+</body>
+</html>

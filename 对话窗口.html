@@ -1,0 +1,35 @@
+<html><head><title>查询SVG属性</title>
+<body >
+<script language="JavaScript" >
+    //var obj = window.dialogArguments;
+    //alert("您传递的参数为：" + obj.name);
+     
+    //var svgns = "http://www.w3.org/2000/svg";
+    var ret = "yellow"; //Default
+    window.returnValue=ret;
+    
+    function setColor(evt)
+    {
+        var targetshape = evt.getTarget();
+        ret = targetshape.getAttributeNS(null,"fill");
+        //alert(ret);
+        window.returnValue=ret;
+        
+        var SvgMainMapDoc=id1.getSVGDocument();
+        
+        var id="text1";
+        
+        if(SvgMainMapDoc.getElementById( id ).hasChildNodes() == true)
+            SvgMainMapDoc.getElementById( id ).getFirstChild().setData( ret );
+        else
+        {
+            NewItem = SvgMainMapDoc.createTextNode( ret )
+            SvgMainMapDoc.getElementById( id ).appendChild(NewItem);
+        }
+        
+        self.close()
+    }
+</script>
+<embed name="id1" pluginspage="http://www.adobe.com/svg/viewer/install/" align="top" src="3.svg" height="200px" width="400px" type="image/svg+xml">
+</body>
+</html>
